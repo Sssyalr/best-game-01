@@ -5,6 +5,7 @@
 import * as THREE from 'three';
 import { GAME, PLAYER, SCORE, LEVEL, COLORS } from './config.js';
 import { World } from './world.js';
+import { Atmosphere } from './atmosphere.js';
 import { Player } from './player.js';
 import { EnemyManager } from './enemies.js';
 import { SoundBank } from './audio.js';
@@ -21,11 +22,17 @@ class Game {
     this.renderer = new THREE.WebGLRenderer({ canvas: this.canvas, antialias: true });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    this.renderer.shadowMap.enabled = false;
+    // Cinematic grade: soft shadows and filmic tone mapping so the ember
+    // lights bloom and the dark corners stay moody instead of flat.
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = LEVEL.exposure;
     this.scene = new THREE.Scene();
     this.camera = new THREE.PerspectiveCamera(74, window.innerWidth / window.innerHeight, 0.1, 200);
     this.sound = new SoundBank();
     this.world = new World(this.scene);
+    this.atmosphere = new Atmosphere(this.scene);
     this.player = new Player(this.camera, this.canvas, this.sound);
     this.enemies = new EnemyManager(this.scene, this.world, this.sound);
     this.hud = new HUD();
@@ -358,6 +365,7 @@ class Game {
     if (this.tracer.visible && this.now > this.tracerUntil) this.tracer.visible = false;
     if (this.muzzleLight.intensity > 0 && this.now > this.muzzleUntil) this.muzzleLight.intensity = 0;
     this.world.update(dt, this.now);
+    this.atmosphere.update(dt, this.now);
   }
 
   loop() {

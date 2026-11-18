@@ -68,6 +68,7 @@ class Orb extends Enemy {
       color: 0x3a2a26, roughness: 0.35, metalness: 0.8, emissive: ORB.color, emissiveIntensity: 0.25,
     });
     const body = new THREE.Mesh(new THREE.IcosahedronGeometry(ORB.radius, 0), bodyMat);
+    body.castShadow = true;
     g.add(body);
     // Glowing eye that tracks the player.
     const eye = new THREE.Mesh(
@@ -133,6 +134,7 @@ class Scuttler extends Enemy {
     });
     const body = new THREE.Mesh(new THREE.BoxGeometry(1.1, 0.55, 1.4), bodyMat);
     body.position.y = 0.42;
+    body.castShadow = true;
     g.add(body);
     // Jaw / mandibles at the front.
     const jawMat = new THREE.MeshStandardMaterial({ color: 0x2a241c, roughness: 0.4, metalness: 0.8 });

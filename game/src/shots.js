@@ -50,7 +50,9 @@ export function applyShot(G, shot, seed) {
     G.startGame();
     G.debugSetState({ health: 64, ammo: 7, score: 2840, elapsed: 226, kills: 9, coresDone: 3 });
     G.armExtraction();
-    G.setCameraView({ x: 0, y: 2.2, z: 16 }, { yaw: Math.PI, pitch: -0.1 });
+    // Further back and tilted down: the pad reads as a destination, and its
+    // floating label stays a landmark instead of filling the frame.
+    G.setCameraView({ x: 0, y: 3.0, z: 12 }, { yaw: Math.PI, pitch: -0.18 });
     G.winGame();
     return 'win';
   }

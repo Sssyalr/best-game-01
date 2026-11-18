@@ -27,17 +27,17 @@
   #health-bar { height: 12px; background: #241a16; border: 1px solid #5a3a28; border-radius: 3px; margin: 4px 0 2px; overflow: hidden; }
   #health-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff6a2a, #ffc233); transition: width 0.15s; }
   #health-fill.low { background: linear-gradient(90deg, #c22, #ff5a3c); }
-  #health-num { font-size: 20px; font-weight: 700; }
+  #health-num { font-size: 22px; font-weight: 700; text-shadow: 0 1px 3px #000; }
   #hud-tr { position: absolute; top: 14px; right: 14px; text-align: right; min-width: 170px; }
   #hud-tr .label { font-size: 11px; letter-spacing: 2px; color: var(--ember-soft); }
-  #score-num { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #score-num { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px #000; }
   #timer-num { font-size: 15px; color: #cfc8bd; font-variant-numeric: tabular-nums; }
   #hud-bl { position: absolute; bottom: 16px; left: 14px; }
   #cores-pips { font-size: 22px; letter-spacing: 6px; color: #4a443c; }
   #cores-pips .pip.on { color: var(--ember); text-shadow: 0 0 8px var(--ember); }
   #objective-line { font-size: 13px; color: #e8ddc9; margin-top: 4px; max-width: 300px; }
   #hud-br { position: absolute; bottom: 16px; right: 14px; text-align: right; }
-  #ammo-num { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #ammo-num { font-size: 28px; font-weight: 800; font-variant-numeric: tabular-nums; text-shadow: 0 1px 3px #000; }
   #reload-hint { color: var(--hazard); font-size: 12px; letter-spacing: 2px; }
   #enemies-line { font-size: 12px; color: #b8ad9d; margin-top: 2px; }
   #crosshair { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 22px; color: rgba(242, 237, 230, 0.9); text-shadow: 0 0 4px #000; }
@@ -48,6 +48,13 @@
   #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 6; opacity: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(200, 20, 10, 0.55) 100%); }
   #vignette.flash { animation: dmg 0.45s ease-out; }
   @keyframes dmg { 0% { opacity: 1; } 100% { opacity: 0; } }
+  /* Permanent cinematic grade: a soft vignette plus a faint warm lift at
+     the top, so the frame reads as one moody photograph at any size. */
+  #grade { position: fixed; inset: 0; pointer-events: none; z-index: 4;
+    background:
+      radial-gradient(ellipse at 50% 42%, transparent 52%, rgba(6, 4, 8, 0.34) 100%),
+      linear-gradient(180deg, rgba(255, 122, 40, 0.05), transparent 22%, transparent 82%, rgba(10, 14, 18, 0.18));
+  }
 
   /* --- Screens --- */
   .screen { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: radial-gradient(ellipse at 50% 35%, rgba(60, 25, 10, 0.55), rgba(8, 6, 10, 0.88)); padding: 20px; }
@@ -78,6 +85,7 @@
 </head>
 <body>
 <canvas id="game-canvas"></canvas>
+<div id="grade"></div>
 
 <div id="hud" class="hidden">
   <div id="hud-tl" class="panel">

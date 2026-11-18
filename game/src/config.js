@@ -78,14 +78,15 @@ export const LEVEL = {
   depth: 46, // z: -23..23
   wallHeight: 6,
   wallThickness: 1,
-  fogColor: 0x0d0b10,
-  fogNear: 18,
-  fogFar: 58,
+  fogColor: 0x0b090e,
+  fogNear: 13,
+  fogFar: 48,
   ambientColor: 0x2a2f45,
-  ambientIntensity: 0.55,
+  ambientIntensity: 0.38,
   hemiSky: 0x353a55,
   hemiGround: 0x1a120c,
-  hemiIntensity: 0.5,
+  hemiIntensity: 0.42,
+  exposure: 1.18, // ACES filmic tone-mapping exposure
   // Player spawns at the south gate, facing north into the hall.
   playerSpawn: { x: 0, z: 19, yaw: 0 }, // yaw 0 faces north (-z) into the hall
   // Extraction pad: the shuttle dock at the south wall, behind the spawn.
@@ -102,6 +103,10 @@ export const LEVEL = {
     [16, 6, 3, 3, 1.4], [-20, -4, 3, 4, 2.2], [20, -4, 3, 4, 2.2],
     [-8, -8, 4, 3, 1.4], [8, -8, 4, 3, 1.4], [-14, -14, 3, 3, 2.2],
     [14, -14, 3, 3, 2.2], [0, 2, 5, 2, 1.2], [0, -12, 3, 3, 1.4],
+    // Edge stacks added in the visual pass: clear of the spawn lane,
+    // the core approaches, the medkits and the extraction pad.
+    [-28, -8, 3, 3, 1.4], [28, -8, 3, 3, 1.4],
+    [-28, 18, 3, 2, 2.2], [28, 18, 3, 2, 2.2],
   ],
   // Pillars: [x, z, radius, height]
   pillars: [
