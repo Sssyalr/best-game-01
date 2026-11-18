@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>FERROX-9 — Salvage run on the derelict foundry station</title>
+<style>
+  :root {
+    --ember: #ff6a2a;
+    --ember-soft: #ff9a4d;
+    --teal: #2fd6c8;
+    --hazard: #ffc233;
+    --ink: #f2ede6;
+    --panel: rgba(12, 10, 16, 0.72);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 100%; height: 100%; overflow: hidden; background: #0d0b10; }
+  body { font-family: "Segoe UI", system-ui, sans-serif; color: var(--ink); }
+  #game-canvas { position: fixed; inset: 0; width: 100%; height: 100%; display: block; cursor: crosshair; }
+  .hidden { display: none !important; }
+
+  /* --- HUD --- */
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 5; }
+  .panel { background: var(--panel); border: 1px solid rgba(255, 154, 77, 0.35); border-radius: 6px; padding: 8px 12px; backdrop-filter: blur(2px); }
+  #hud-tl { position: absolute; top: 14px; left: 14px; min-width: 230px; }
+  #hud-tl .label { font-size: 11px; letter-spacing: 2px; color: var(--ember-soft); }
+  #health-bar { height: 12px; background: #241a16; border: 1px solid #5a3a28; border-radius: 3px; margin: 4px 0 2px; overflow: hidden; }
+  #health-fill { height: 100%; width: 100%; background: linear-gradient(90deg, #ff6a2a, #ffc233); transition: width 0.15s; }
+  #health-fill.low { background: linear-gradient(90deg, #c22, #ff5a3c); }
+  #health-num { font-size: 20px; font-weight: 700; }
+  #hud-tr { position: absolute; top: 14px; right: 14px; text-align: right; min-width: 170px; }
+  #hud-tr .label { font-size: 11px; letter-spacing: 2px; color: var(--ember-soft); }
+  #score-num { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #timer-num { font-size: 15px; color: #cfc8bd; font-variant-numeric: tabular-nums; }
+  #hud-bl { position: absolute; bottom: 16px; left: 14px; }
+  #cores-pips { font-size: 22px; letter-spacing: 6px; color: #4a443c; }
+  #cores-pips .pip.on { color: var(--ember); text-shadow: 0 0 8px var(--ember); }
+  #objective-line { font-size: 13px; color: #e8ddc9; margin-top: 4px; max-width: 300px; }
+  #hud-br { position: absolute; bottom: 16px; right: 14px; text-align: right; }
+  #ammo-num { font-size: 26px; font-weight: 800; font-variant-numeric: tabular-nums; }
+  #reload-hint { color: var(--hazard); font-size: 12px; letter-spacing: 2px; }
+  #enemies-line { font-size: 12px; color: #b8ad9d; margin-top: 2px; }
+  #crosshair { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 22px; color: rgba(242, 237, 230, 0.9); text-shadow: 0 0 4px #000; }
+  #hitmarker { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-size: 30px; font-weight: 800; color: #fff; text-shadow: 0 0 6px #000; }
+  #hitmarker.kill { color: #ff5a3c; font-size: 36px; }
+  #message { position: absolute; left: 50%; top: 18%; transform: translateX(-50%); font-size: 19px; font-weight: 700; letter-spacing: 1px; color: #ffe1b8; background: var(--panel); border: 1px solid rgba(255, 154, 77, 0.5); border-radius: 6px; padding: 8px 18px; white-space: nowrap; }
+  #interact { position: absolute; left: 50%; top: 58%; transform: translateX(-50%); font-size: 15px; font-weight: 700; color: var(--teal); background: var(--panel); border: 1px solid rgba(47, 214, 200, 0.5); border-radius: 6px; padding: 7px 14px; white-space: nowrap; }
+  #vignette { position: fixed; inset: 0; pointer-events: none; z-index: 6; opacity: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(200, 20, 10, 0.55) 100%); }
+  #vignette.flash { animation: dmg 0.45s ease-out; }
+  @keyframes dmg { 0% { opacity: 1; } 100% { opacity: 0; } }
+
+  /* --- Screens --- */
+  .screen { position: fixed; inset: 0; z-index: 10; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; background: radial-gradient(ellipse at 50% 35%, rgba(60, 25, 10, 0.55), rgba(8, 6, 10, 0.88)); padding: 20px; }
+  .screen h1 { font-size: 64px; letter-spacing: 10px; color: var(--ember); text-shadow: 0 0 24px rgba(255, 106, 42, 0.55); }
+  .screen h2 { font-size: 15px; letter-spacing: 4px; color: var(--teal); margin: 8px 0 18px; font-weight: 600; }
+  .screen p { font-size: 15px; line-height: 1.7; color: #ddd5c6; max-width: 560px; }
+  .screen .controls { margin: 20px 0; font-size: 14px; line-height: 2; color: #cfc6b4; background: var(--panel); border: 1px solid rgba(255, 154, 77, 0.3); border-radius: 8px; padding: 12px 26px; text-align: left; }
+  .screen .controls b { color: var(--ember-soft); display: inline-block; min-width: 130px; }
+  .big-btn { pointer-events: auto; cursor: pointer; margin-top: 8px; font-size: 19px; font-weight: 800; letter-spacing: 3px; color: #160b06; background: linear-gradient(180deg, #ffb066, #ff6a2a); border: none; border-radius: 8px; padding: 14px 44px; box-shadow: 0 0 22px rgba(255, 106, 42, 0.45); }
+  .big-btn:hover { filter: brightness(1.12); }
+  .big-btn:active { transform: translateY(1px); }
+  .screen .foot { margin-top: 18px; font-size: 12px; color: #8d8478; letter-spacing: 1px; }
+  .stat-row { display: flex; gap: 34px; margin: 16px 0 6px; }
+  .stat-row .stat { text-align: center; }
+  .stat-row .stat .v { font-size: 32px; font-weight: 800; color: var(--ember-soft); font-variant-numeric: tabular-nums; }
+  .stat-row .stat .k { font-size: 11px; letter-spacing: 2px; color: #9a9082; }
+  #screen-win h1 { color: var(--teal); text-shadow: 0 0 24px rgba(47, 214, 200, 0.5); }
+  #screen-lose h1 { color: #ff5a3c; text-shadow: 0 0 24px rgba(255, 60, 40, 0.5); }
+  #selftest-result { position: fixed; left: 8px; bottom: 8px; z-index: 50; background: rgba(0,0,0,0.8); color: #9fe8a9; font: 12px monospace; padding: 8px; max-width: 60vw; white-space: pre-wrap; }
+</style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "./vendor/three.module.min.js"
+  }
+}
+</script>
+</head>
+<body>
+<canvas id="game-canvas"></canvas>
+
+<div id="hud" class="hidden">
+  <div id="hud-tl" class="panel">
+    <div class="label">INTEGRITY</div>
+    <div id="health-bar"><div id="health-fill"></div></div>
+    <div><span id="health-num">100</span> <span style="font-size:12px;color:#9a9082">/ 100</span></div>
+  </div>
+  <div id="hud-tr" class="panel">
+    <div class="label">SCORE</div>
+    <div id="score-num">00000</div>
+    <div id="timer-num">00:00</div>
+  </div>
+  <div id="hud-bl" class="panel">
+    <div class="label">FUSION CORES</div>
+    <div id="cores-pips"></div>
+    <div id="objective-line">Restart 3 fusion cores, then reach the extraction pad.</div>
+  </div>
+  <div id="hud-br" class="panel">
+    <div class="label">AMMO</div>
+    <div id="ammo-num">12 / 12</div>
+    <div id="reload-hint" class="hidden">RELOADING…</div>
+    <div id="enemies-line">HOSTILES: <span id="enemies-num">0</span></div>
+  </div>
+  <div id="crosshair">＋</div>
+  <div id="hitmarker" class="hidden">✚</div>
+  <div id="message" class="hidden"></div>
+  <div id="interact" class="hidden"></div>
+</div>
+<div id="vignette"></div>
+
+<div id="screen-title" class="screen">
+  <h1>FERROX-9</h1>
+  <h2>SALVAGE RUN ON THE DERELICT FOUNDRY STATION</h2>
+  <p>The foundry went dark and its defence grid woke up hostile. You are the salvage
+  engineer sent in alone: restart the three fusion cores, then get to the extraction
+  pad before the station's Wardens and Scuttlers tear you apart.</p>
+  <div class="controls">
+    <div><b>W A S D</b> move &nbsp; <b>SHIFT</b> sprint</div>
+    <div><b>MOUSE</b> look &nbsp; <b>CLICK</b> fire &nbsp; <b>R</b> reload</div>
+    <div><b>E (hold)</b> restart a fusion core &nbsp; <b>ESC</b> pause</div>
+  </div>
+  <button id="btn-start" class="big-btn">ENTER THE FOUNDRY</button>
+  <div class="foot">HEADPHONES RECOMMENDED · SOUND IS SYNTHESIZED LIVE · CLICK CAPTURES YOUR MOUSE</div>
+</div>
+
+<div id="screen-win" class="screen hidden">
+  <h1>EXTRACTED</h1>
+  <h2>ALL THREE CORES ONLINE — THE SHUTTLE IS AWAY</h2>
+  <div class="stat-row">
+    <div class="stat"><div class="v" id="win-score">00000</div><div class="k">SCORE</div></div>
+    <div class="stat"><div class="v" id="win-time">00:00</div><div class="k">TIME</div></div>
+    <div class="stat"><div class="v" id="win-kills">0</div><div class="k">HOSTILES DOWN</div></div>
+  </div>
+  <p>Ferrox-9 hums again. The salvage is yours — and so is the story.</p>
+  <button id="btn-again-win" class="big-btn">RUN IT AGAIN</button>
+</div>
+
+<div id="screen-lose" class="screen hidden">
+  <h1>FLATLINED</h1>
+  <h2>THE FOUNDRY KEEPS ITS DEAD</h2>
+  <div class="stat-row">
+    <div class="stat"><div class="v" id="lose-score">00000</div><div class="k">SCORE</div></div>
+    <div class="stat"><div class="v" id="lose-cores">0 / 3</div><div class="k">CORES RESTARTED</div></div>
+  </div>
+  <p>Your rig reboots at the south gate. The cores are still dark. The hostiles are still hunting.</p>
+  <button id="btn-again-lose" class="big-btn">TRY AGAIN</button>
+</div>
+
+<div id="screen-pause" class="screen hidden">
+  <h1 style="font-size:44px">PAUSED</h1>
+  <h2>THE FOUNDRY WAITS</h2>
+  <button id="btn-resume" class="big-btn">RESUME</button>
+  <div class="foot">CLICK RESUME TO CAPTURE THE MOUSE AGAIN</div>
+</div>
+
+<script type="module" src="./src/main.js"></script>
+</body>
+</html>
